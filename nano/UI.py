@@ -1,56 +1,13 @@
 from multiprocessing import Queue, Process
-import threading
-import cv2
-import numpy as np
-import time
-import math
-import onnxruntime
-
-import os
-
-
-import sys
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow
-from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtWidgets import QMessageBox
-
-# from open_camera import Ui_MainWindow
-import numpy as np
 import cv2
 import time
-from random import uniform
 from PyQt5.Qt import *
 import sys
-import warnings
 import threading
-from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QTimer, QDateTime
-
-
-# AImodel
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
-from torchvision import models
-import torch.nn as nn
-import torch
-import os
-import numpy as np
-import matplotlib.pyplot as plt
-
-from PIL import Image
-import glob
-from torch.utils.data import Dataset
-import random
-from PIL import ImageFile
-
-import serial
-import serial.tools.list_ports as serials
-
+from PyQt5.QtCore import QTimer
 
 class showUI(QtWidgets.QMainWindow):
     def __init__(self, UIQ):

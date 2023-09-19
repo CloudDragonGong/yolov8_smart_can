@@ -1,21 +1,50 @@
 import random
 import numpy as np
-import onnxruntime as ort
 import cv2
 from ultralytics import YOLO
-from PIL import Image
 
-def garbage_list_prediction(prediction):
+
+def name_list_prediction(prediction):
     result = [prediction[int(box.cls[0])] for box in prediction.boxes.cpu().numpy()]
     return result
 
-def garbage_numbers_prediction(prediction):
-    result = {}
+
+def name_numbers_boxes_prediction(prediction):
+    result_numbers = {}
+    result_boxes = {}
     for box in prediction.boxes.cpu().numpy():
         name = prediction[int(box.cls[0])]
-        result[name] = 
+        if name not in result_numbers:
+            result_numbers[name] = 0
+        result_numbers[name] += 1
+        result_boxes[name] = box
+    return result_numbers, result_boxes
+
+
+def type_list_prediction(name_list, name_to_type):
+    garbage_type_list = [name_to_type[name] for name in name_list]
+    return garbage_type_list
+
+
+def type_numbers_prediction(name_numbers, name_to_type):
+    name_numbers = {name_to_type[name]: number for name, number in name_numbers.items()}
+    return name_numbers
+
+
+def type_boxes_prediction(names_boxes, name_to_type):
+    type_boxes = {name_to_type[name]: box for name, box in names_boxes.items()}
+    return type_boxes
+
+
 class YoloModule:
     def __init__(self, load_path='best.onnx', cuda=False):
+        self.type_boxes = None
+        self.garbage_type_numbers = None
+        self.garbage_type = None
+        self.names_boxes = None
+        self.garbage_names_numbers = None
+        self.garbage_names = None
+        self.predict_result = None
         self.img = None  # img
         self.img_ori = None
         self.model = None  # model
@@ -24,6 +53,12 @@ class YoloModule:
         self.cuda = cuda
         self.names = ['cipian', 'eluanshi', 'tudou', 'bailuobo', 'huluobo',
                       'yilaguan', 'bottle', 'battery', 'medician']
+        self.name_to_type = {
+            'cipian': '其他垃圾', 'eluanshi': '其他垃圾', 'tudou': '厨余垃圾', 'bailuobo': '厨余垃圾',
+            'huluobo': '厨余垃圾',
+            'yilaguan': '可回收垃圾', 'bottle': '可回收垃圾', 'battery': '可回收垃圾', 'medician': '有害垃圾',
+            'zhuantou': '其他垃圾'
+        }
         self.colors = {name: [random.randint(0, 255) for _ in range(3)] for i, name in enumerate(self.names)}
 
     def LoadModel(self):
@@ -31,7 +66,7 @@ class YoloModule:
         self.model = YOLO(self.load_path)
         print("模型加载结束")
 
-    def read_img(self,img):
+    def read_img(self, img):
         """
         read the img and copy img_ori
         """
@@ -49,52 +84,14 @@ class YoloModule:
         - the dict {garbage name : box}
         """
         self.predict_result = self.model(self.img)[0]
-        self.garbage_types = garbage_list_prediction(self.predict_result)
-        self.garbage_types_numbers = garbage_numbers_prediction()
+        self.garbage_names = name_list_prediction(self.predict_result)
+        self.garbage_names_numbers, self.names_boxes = name_numbers_boxes_prediction(self.predict_result)
+        self.garbage_type = type_list_prediction(self.garbage_names, self.name_to_type)
+        self.garbage_type_numbers = type_numbers_prediction(self.garbage_names_numbers, self.name_to_type)
+        self.type_boxes = type_boxes_prediction(self.names_boxes, self.name_to_type)
 
     def Module(self, frame):
         """
         the prediction function outside
         """
-        im, image, ratio, dwdh = self.img_process(frame)
-        outputs = self.get_preds(im)
-        print(f'the length is {len(outputs)}')
-        if len(outputs) == 0:
-            return None
-        return self.gar_sort(outputs, ratio, dwdh)
-
-    def gar_sort(self, outputs, ratio, dwdh):
-        ori_images = [self.img_ori.copy()]
-
-        for i, (batch_id, x0, y0, x1, y1, cls_id, score) in enumerate(outputs):
-            image = ori_images[int(batch_id)]
-            box = np.array([x0, y0, x1, y1])  # 框的位置坐标
-            box -= np.array(dwdh * 2)
-            box /= ratio
-            box = box.round().astype(np.int32).tolist()
-            cls_id = int(cls_id)  # 类别id
-            print(cls_id)
-            score = round(float(score), 3)
-            name = self.names[cls_id]  # id对应的类别
-            print(name)
-            color = self.colors[name]
-            name += ' ' + str(score)  # 类别+概率score
-            # 画框
-            cv2.rectangle(image, box[:2], box[2:], color, 2)
-            cv2.putText(image, name, (box[0], box[1] - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.75, [225, 255, 255], thickness=2)
-
-        cv2.imwrite('img/image_anchor_frame.jpg', ori_images[0])
-        pred_id = int(outputs[0][5]) + 1
-        print(self.names[pred_id - 1])
-        if pred_id == 1 or pred_id == 2:
-            flag = 0
-        elif pred_id >= 3 and pred_id <= 5:
-            flag = 1
-        elif pred_id >= 6 and pred_id <= 7:
-            flag = 2
-        elif pred_id >= 8 and pred_id <= 9:
-            flag = 3
-        else:
-            flag = None
-        print("分类完成")
-        return flag, len(outputs)
+        return self.garbage_type[0],self.garbage_type_numbers[self.garbage_type[0]]

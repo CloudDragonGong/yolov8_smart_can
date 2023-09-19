@@ -160,25 +160,19 @@ class Vision_Module:
         self.qUIinformation["ifSuccess"] = False
 
     def AIModule(self):
-        flag, num_garbage = self.AI_module.Module(self.frame)
-        if flag is None:
-            return False
-        print("flag=" + str(flag))
-        if flag == 0:
-            self.garbageType = "其他垃圾"
+        type_to_flag = {'其他垃圾':0,'厨余垃圾':1,'可回收垃圾':2,'有害垃圾':3}
+        self.garbageType, num_garbage = self.AI_module.Module(self.frame)
+        if self.garbageType ==  "其他垃圾":
             self.other_Garbage += num_garbage
-        elif flag == 1:
-            self.garbageType = "厨余垃圾"
+        elif self.garbageType == "厨余垃圾":
             self.kitchen_Waste += num_garbage
-        elif flag == 2:
-            self.garbageType = "可回收垃圾"
+        elif self.garbageType == "可回收垃圾":
             self.recyclable_Trash += num_garbage
-        elif flag == 3:
-            self.garbageType = "有害垃圾"
+        elif self.garbageType == "有害垃圾":
             self.hazardous_Waste += num_garbage
         else:
             return False
-        self.qUIinformation["serialOfGarbage"] = flag
+        self.qUIinformation["serialOfGarbage"] = type_to_flag[self.garbageType]
         self.qUIinformation["ifBegin"] = True
         self.qUIinformation["ifSuccess"] = True
         print("AIModule done")
@@ -197,7 +191,6 @@ class Vision_Module:
         self.qUIinformation["TotalNumber"] = self.totalNum
         self.UIq.put(self.qUIinformation)
         Lock.write_release()
-        # print('UI pass 1 done')
 
     def sendSerialInformation(self):
         print("正在发送数据")

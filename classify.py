@@ -1,12 +1,15 @@
+"""
+the classifyclassify.py can classify one garbage type ,can't show the full load information ,and can't classify
+various types of garbage at one time
+"""
 import multiprocessing
 from multiprocessing import Queue, Process
 from PyQt5.Qt import *
 import sys
 from PyQt5.QtWidgets import *
-from nano import AI_module
+from nano import yolo_module
 from nano import cv_module
 from nano import UI
-
 
 # UI显示的字典 测试使用
 UIinformation = {
@@ -36,10 +39,10 @@ if __name__ == "__main__":
     UIQ = Queue(1)
     voice_assistant_communication_queue = Queue(1)
     multiprocessing.freeze_support() # windows需要加这行代码，linux不需要
-    load_path = r"E:\repository\model\yolov7.onnx"
+    load_path = r"models/yolov8_best.onnx"
     p2 = Process(target=run_UI, args=(UIQ,))
     p2.start()
-    AI = AI_module.AIModule(load_path=load_path)
+    AI = yolo_module.YoloModule(load_path=load_path)
     AI.LoadModel()
     VM = cv_module.Vision_Module(cameraPath=1,q=UIQ,AI_module=AI,voice_assistant_communication_queue=voice_assistant_communication_queue,serial_port_address='COM3')
     VM.run()
