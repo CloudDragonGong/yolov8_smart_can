@@ -1,3 +1,8 @@
-a = {1:2 , 3:4}
-for x , y in a.items():
-    print(x,y)
+# 要表示的大整数
+large_integer = 1000
+
+# 将大整数转换为二进制表示（4个字节，大端序）
+byte_representation = large_integer.to_bytes(4, byteorder='big')
+
+# 打印结果
+print(byte_representation)

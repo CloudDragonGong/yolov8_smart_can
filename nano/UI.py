@@ -1,3 +1,4 @@
+import os
 from multiprocessing import Queue, Process
 import cv2
 import time
@@ -8,7 +9,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QTimer
-
+folder = 'nano'
 class showUI(QtWidgets.QMainWindow):
     def __init__(self, UIQ):
         super().__init__()
@@ -67,13 +68,13 @@ class showUI(QtWidgets.QMainWindow):
 
         self.label_0 = QtWidgets.QLabel(self)  # 用来显示垃圾类别
         self.label_0.setFont(font)
-        self.label_0.resize(desktop.width() * 0.4, desktop.height() * 0.1)
-        self.label_0.move(desktop.width() * 0.85, desktop.height() * 0.00)
+        self.label_0.resize(int(desktop.width() * 0.4), int(desktop.height() * 0.1))
+        self.label_0.move(int(desktop.width() * 0.85), int(desktop.height() * 0.00))
 
         self.label_1 = QtWidgets.QLabel(self)  # 用来显示可回收垃圾
         self.label_1.setFont(font)
-        self.label_1.resize(desktop.width() * 0.4, desktop.height() * 0.2)
-        self.label_1.move(desktop.width() * 0.67, desktop.height() * 0.1)
+        self.label_1.resize(int(desktop.width() * 0.4), int(desktop.height() * 0.2))
+        self.label_1.move(int(desktop.width() * 0.67), int(desktop.height() * 0.1))
 
         self.label_2 = QtWidgets.QLabel(self)  # 用来显示厨余垃圾
         self.label_2.setFont(font)
@@ -237,45 +238,45 @@ class showUI(QtWidgets.QMainWindow):
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def yunUI1(self):
-        img = cv2.imread("img//g.png")
-        cv2.imwrite("img//4.png", img)
-        img = cv2.imread("img//a.png")
-        cv2.imwrite("img//5.png", img)
+        img = cv2.imread(os.path.join(folder,"img//g.png"))
+        cv2.imwrite(os.path.join(folder,"img//4.png"), img)
+        img = cv2.imread(os.path.join(folder,"img//a.png"))
+        cv2.imwrite(os.path.join(folder,"img//5.png"), img)
 
     def yunUI2(self):
-        img = cv2.imread("img//2.png")
-        cv2.imwrite("img//4.png", img)
+        img = cv2.imread(os.path.join(folder,"img//2.png"))
+        cv2.imwrite(os.path.join(folder,"img//4.png"), img)
         if self.UIflag >= 0 and self.UIflag <= 10:
-            img = cv2.imread("img//h1.png")
+            img = cv2.imread(os.path.join(folder,"img//h1.png"))
             self.UIflag += 1
         elif self.UIflag > 10 and self.UIflag <= 20:
-            img = cv2.imread("img//h2.png")
+            img = cv2.imread(os.path.join(folder,"img//h2.png"))
             self.UIflag += 1
 
         elif self.UIflag > 20 and self.UIflag <= 30:
-            img = cv2.imread("img//h3.png")
+            img = cv2.imread(os.path.join(folder,"img//h3.png"))
             self.UIflag += 1
 
         elif self.UIflag > 30 and self.UIflag <= 40:
-            img = cv2.imread("img//h4.png")
+            img = cv2.imread(os.path.join(folder,"img//h4.png"))
             self.UIflag += 1
         else:
-            img = cv2.imread("img//h4.png")
+            img = cv2.imread(os.path.join(folder,"img//h4.png"))
             self.UIflag -= 41
-        cv2.imwrite("img//5.png", img)
+        cv2.imwrite(os.path.join(folder,"img//5.png"), img)
 
     def yunUI3(self):
-        img = cv2.imread("img//3.png")
-        cv2.imwrite("img//4.png", img)
+        img = cv2.imread(os.path.join(folder,"img//3.png"))
+        cv2.imwrite(os.path.join(folder,"img//4.png"), img)
         if self.UIinformation["serialOfGarbage"] == 1:
-            img = cv2.imread("img//b.png")
+            img = cv2.imread(os.path.join(folder,"img//b.png"))
         elif self.UIinformation["serialOfGarbage"] == 3:
-            img = cv2.imread("img//c.png")
+            img = cv2.imread(os.path.join(folder,"img//c.png"))
         elif self.UIinformation["serialOfGarbage"] == 2:
-            img = cv2.imread("img//d.png")
+            img = cv2.imread(os.path.join(folder,"img//d.png"))
         else:
-            img = cv2.imread("img//e.png")
-        cv2.imwrite("img//5.png", img)
+            img = cv2.imread(os.path.join(folder,"img//e.png"))
+        cv2.imwrite(os.path.join(folder,"img//5.png"), img)
 
     def update(self):
         self.UIinformation = self.UIQ.get()
@@ -283,17 +284,21 @@ class showUI(QtWidgets.QMainWindow):
             self.UIinformation["ifBegin"] == False
             and self.UIinformation["ifSuccess"] == False
         ):
-            self.yunUI1()
+            # print('yunui1()')
+            self.yunUI1()  # 请投放垃圾
         elif (
             self.UIinformation["ifBegin"] == True
             and self.UIinformation["ifSuccess"] == False
         ):
-            self.yunUI2()
+            # print('yunui2()')
+            self.yunUI2() # 开始分类
         elif (
             self.UIinformation["ifBegin"] == True
             and self.UIinformation["ifSuccess"] == True
         ):
-            self.yunUI3()
+            # print('yunui3()')
+            self.yunUI3() # 分类完成
+
 
         self.label_0.setText("垃圾种类")
         self.label_1.setText("可回收垃圾")
@@ -319,32 +324,48 @@ class showUI(QtWidgets.QMainWindow):
         self.label_18.setText("倒计时")
         self.label_19.setText(str(20 - self.UIinformation["countDown"]))
 
+
+        # 赛题要求；
         self.label_20.setText("序号")
         self.label_21.setText("垃圾种类")
         self.label_22.setText("数量")
         self.label_23.setText("分类成功与否")
 
-        if self.UIinformation["ifSuccess"]:
-            self.label_24.setText(str(self.UIinformation["TotalNumber"]))
-            self.label_25.setText(self.UIinformation["garbageCategory"])
+        # if self.UIinformation["ifSuccess"]:
+        #     self.label_24.setText(str(self.UIinformation["TotalNumber"]))
+        #     self.label_25.setText(self.UIinformation["garbageCategory"])
+        #
+        #     if self.UIinformation["garbageCategory"] == "可回收垃圾":
+        #         self.label_26.setText(str(self.UIinformation["recyclable trash"]))
+        #     elif self.UIinformation["garbageCategory"] == "厨余垃圾":
+        #         self.label_26.setText(str(self.UIinformation["Kitchen waste"]))
+        #     elif self.UIinformation["garbageCategory"] == "有害垃圾":
+        #         self.label_26.setText(str(self.UIinformation["hazardous waste"]))
+        #     elif self.UIinformation["garbageCategory"] == "其他垃圾":
+        #         self.label_26.setText(str(self.UIinformation["other garbage"]))
+        # else:
+        #     self.label_24.setText("")
+        #     self.label_25.setText("")
+        #     self.label_26.setText("")
+        self.label_24.setText(str(self.UIinformation["TotalNumber"]))
+        self.label_25.setText(self.UIinformation["garbageCategory"])
 
-            if self.UIinformation["garbageCategory"] == "可回收垃圾":
-                self.label_26.setText(str(self.UIinformation["recyclable trash"]))
-            elif self.UIinformation["garbageCategory"] == "厨余垃圾":
-                self.label_26.setText(str(self.UIinformation["Kitchen waste"]))
-            elif self.UIinformation["garbageCategory"] == "有害垃圾":
-                self.label_26.setText(str(self.UIinformation["hazardous waste"]))
-            elif self.UIinformation["garbageCategory"] == "其他垃圾":
-                self.label_26.setText(str(self.UIinformation["other garbage"]))
-        else:
-            self.label_24.setText("")
-            self.label_25.setText("")
-            self.label_26.setText("")
-
+        if self.UIinformation["garbageCategory"] == "可回收垃圾":
+            self.label_26.setText(str(self.UIinformation["recyclable trash"]))
+        elif self.UIinformation["garbageCategory"] == "厨余垃圾":
+            self.label_26.setText(str(self.UIinformation["Kitchen waste"]))
+        elif self.UIinformation["garbageCategory"] == "有害垃圾":
+            self.label_26.setText(str(self.UIinformation["hazardous waste"]))
+        elif self.UIinformation["garbageCategory"] == "其他垃圾":
+            self.label_26.setText(str(self.UIinformation["other garbage"]))
         if self.UIinformation["ifSuccess"]:
             self.label_27.setText("OK!")
+            # time.sleep(1)
+            print('ok')
         else:
             self.label_27.setText("不OK!")
+
+
         # 可回收 厨余垃圾 有害垃圾 其他垃圾
         if  self.UIinformation["fullLoadGarbage20s"]:
             if self.UIinformation["fullLoadGarbage"] == None:
@@ -396,7 +417,7 @@ class showUI(QtWidgets.QMainWindow):
                 self.label_12f.setText("未满载")
 
     def showImage(self):
-        img = cv2.imread("img//4.png")
+        img = cv2.imread(os.path.join(folder,"img//4.png"))
         if img is None:
             return
         image_show = cv2.resize(img, (520, 150))  # 把读到的帧的大小重新设置为 520*150
@@ -410,7 +431,7 @@ class showUI(QtWidgets.QMainWindow):
         self.label_16.setPixmap(QPixmap.fromImage(self.showImage1))
 
     def showImage_2(self):
-        img = cv2.imread("img//5.png")
+        img = cv2.imread(os.path.join(folder,"img//5.png"))
         if img is None:
             return
         image_show = cv2.resize(img, (180, 150))  # 把读到的帧的大小重新设置为 600*360
@@ -435,11 +456,11 @@ class showUI(QtWidgets.QMainWindow):
             )
             self.label_15.setPixmap(QPixmap.fromImage(self.showImage2))
         else:
-            print("error")
+            print("warning: from show video,")
 
     def getImg(self):
         while True:
-            self.cap = cv2.VideoCapture("img//1.mov")
+            self.cap = cv2.VideoCapture(os.path.join(folder,"img//1.mov"))
             while True:
                 self.flag, self.frame = self.cap.read()
                 if self.flag:
@@ -452,7 +473,7 @@ class showUI(QtWidgets.QMainWindow):
 # for test
 def UIQ_put(UIQ, UIinformation):
     while True:
-        time.sleep(0.025)
+        time.sleep(0.002)
         UIQ.put(UIinformation)
 
 

@@ -1,3 +1,5 @@
+import os
+
 import cv2
 import time
 import threading
@@ -5,6 +7,7 @@ import serial
 # 文件间的import
 from nano.lock import Lock
 
+folder = 'nano'
 num0 = 0
 # 用于初始化开机操作的参数
 NN = 0
@@ -17,7 +20,7 @@ def edge_demo(image):
 
 
 def detectSpam(frame, frame2, maskPath, frame2_valid=True):
-    cv2.imwrite("img//frame.jpg", frame)
+    cv2.imwrite(os.path.join(folder, "img//frame.jpg"), frame)
     global num0
     global detect
     # mask = cv2.imread(maskPath)
@@ -28,7 +31,7 @@ def detectSpam(frame, frame2, maskPath, frame2_valid=True):
     # frame = cv2.bitwise_and(frame,frame,mask = mask)
     # dst = unevenLightCompensate(frame, 16)
     edge = edge_demo(frame)
-    if edge.size != 0: cv2.imwrite("img//edge1.jpg", edge)
+    if edge.size != 0: cv2.imwrite(os.path.join(folder, "img//edge1.jpg"), edge)
     num1 = cv2.countNonZero(src=edge)
 
     # dst = unevenLightCompensate(frame2, 16)
@@ -36,7 +39,7 @@ def detectSpam(frame, frame2, maskPath, frame2_valid=True):
         num2 = 0
     else:
         edge = edge_demo(frame2)
-        if edge.size != 0: cv2.imwrite("img//edge2.jpg", edge)
+        if edge.size != 0: cv2.imwrite(os.path.join(folder, "img//edge2.jpg"), edge)
         num2 = cv2.countNonZero(src=edge)
 
     num = num1 + num2
@@ -69,7 +72,7 @@ class Vision_Module:
             voice_assistant_communication_queue,  # 语音助手消息队列
             cameraPath=0,
             cameraPath2=None,
-            maskPath="img//mask.jpg",
+            maskPath=os.path.join(folder, "img//mask.jpg"),
             baud_rate=9600,  # 嵌入式传输波特率
             timeout=0.5,  # 0.5秒连接超时
             serial_port_address="/dev/ttyUSB0",  # 串口位置
@@ -139,7 +142,7 @@ class Vision_Module:
     def camera(self):
         try:
             reg, self.frame = self.cap.read()
-            cv2.imwrite("img//1.jpg", self.frame)
+            cv2.imwrite(os.path.join(folder, "img//1.jpg"), self.frame)
             if self.cap2 != None:
                 reg, self.frame2 = self.cap2.read()
             else:
@@ -150,6 +153,7 @@ class Vision_Module:
     def detectionModule(self):
         try:
             return self.AIModule()
+            # return False
         except Exception as e:
             print('error in detectionModule')
             return False
@@ -160,9 +164,9 @@ class Vision_Module:
         self.qUIinformation["ifSuccess"] = False
 
     def AIModule(self):
-        type_to_flag = {'其他垃圾':0,'厨余垃圾':1,'可回收垃圾':2,'有害垃圾':3}
+        type_to_flag = {'其他垃圾': 0, '厨余垃圾': 1, '可回收垃圾': 2, '有害垃圾': 3}
         self.garbageType, num_garbage = self.AI_module.Module(self.frame)
-        if self.garbageType ==  "其他垃圾":
+        if self.garbageType == "其他垃圾":
             self.other_Garbage += num_garbage
         elif self.garbageType == "厨余垃圾":
             self.kitchen_Waste += num_garbage
@@ -407,12 +411,7 @@ class Vision_Module:
     def run(self):
         global NN
         global detect
-        # 一定时间检测满载情况线程
-        # t0 = threading.Thread(target=self.countDown, args=())
-        # t0.start()
-        # 进行传输给语音助手的线程
-        # voice_assistant_transfer_thread = threading.Thread(target=self.voice_assistant_transfer,args=())
-        # voice_assistant_transfer_thread.start()
+
         self.cap.open(self.cameraPath)
         while True:
             try:
@@ -427,21 +426,11 @@ class Vision_Module:
             elif self.if20s:
                 detect = -1
                 NN = NN + 1
-                # self.cap.release()
-                # if self.cap2 != None :self.cap2.release()
                 self.trigger = True
-                # time.sleep(0.5)
-                # self.cap.open(0)
-
-                # self.camera()
-                # self.cap.release()
-
                 t1 = threading.Thread(target=self.UI_pass_parameters_3, args=())
                 t2 = threading.Thread(target=self.UI_pass_parameters_4, args=())
-
                 self.CVModule()
                 t1.start()
-                # self.AIModule()
                 self.UI_pass_parameters_1()
 
                 t2.start()

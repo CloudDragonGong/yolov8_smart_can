@@ -3,21 +3,21 @@ import numpy as np
 import cv2
 from ultralytics import YOLO
 
-
 def name_list_prediction(prediction):
-    result = [prediction[int(box.cls[0])] for box in prediction.boxes.cpu().numpy()]
+    result = [prediction.names[int(box.cls[0])] for box in prediction.boxes.cpu().numpy()]
     return result
-
 
 def name_numbers_boxes_prediction(prediction):
     result_numbers = {}
     result_boxes = {}
     for box in prediction.boxes.cpu().numpy():
-        name = prediction[int(box.cls[0])]
+        name = prediction.names[int(box.cls[0])]
         if name not in result_numbers:
             result_numbers[name] = 0
+        if name not in result_boxes:
+            result_boxes[name] = []
         result_numbers[name] += 1
-        result_boxes[name] = box
+        result_boxes[name].append(box.xyxy[0].astype(int))
     return result_numbers, result_boxes
 
 
@@ -32,7 +32,7 @@ def type_numbers_prediction(name_numbers, name_to_type):
 
 
 def type_boxes_prediction(names_boxes, name_to_type):
-    type_boxes = {name_to_type[name]: box for name, box in names_boxes.items()}
+    type_boxes = {name_to_type[name]: box_list for name, box_list in names_boxes.items()}
     return type_boxes
 
 
@@ -72,26 +72,58 @@ class YoloModule:
         """
         self.img = img
         self.img_ori = img.copy()
+    def predict_img(self,img):
+        self.read_img(img)
+        return self.predict()
 
     def predict(self):
         """
         predict the result:
         - the garbage type list of prediction
         - the dict {garbage type : num}
-        - the dict {garbage type : box}
+        - the dict {garbage type : box_list}
         - the garbage name list of prediction
         - the dict {garbage name : num}
-        - the dict {garbage name : box}
+        - the dict {garbage name : box_list}
         """
-        self.predict_result = self.model(self.img)[0]
+
+        self.predict_result = self.model(source=self.img)[0]
+        if len(self.predict_result.boxes) == 0:
+            return False
         self.garbage_names = name_list_prediction(self.predict_result)
         self.garbage_names_numbers, self.names_boxes = name_numbers_boxes_prediction(self.predict_result)
         self.garbage_type = type_list_prediction(self.garbage_names, self.name_to_type)
         self.garbage_type_numbers = type_numbers_prediction(self.garbage_names_numbers, self.name_to_type)
         self.type_boxes = type_boxes_prediction(self.names_boxes, self.name_to_type)
+        return True
 
     def Module(self, frame):
         """
         the prediction function outside
         """
-        return self.garbage_type[0],self.garbage_type_numbers[self.garbage_type[0]]
+        self.garbage_type = None
+        self.read_img(frame)
+        success = self.predict()
+        if success:
+            return self.garbage_type[0],self.garbage_type_numbers[self.garbage_type[0]]
+        else:
+            return None,None
+
+    def get_garbage_names(self):
+        return self.garbage_names
+
+    def get_garbage_names_numbers(self):
+        return self.garbage_names_numbers
+
+    def get_names_boxes(self):
+        return self.names_boxes
+
+    def get_garbage_type(self):
+        return self.garbage_type
+
+    def get_garbage_type_numbers(self):
+        return self.garbage_type_numbers
+
+    def get_type_boxes(self):
+        return self.type_boxes
+

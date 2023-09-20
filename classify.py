@@ -44,7 +44,7 @@ if __name__ == "__main__":
     p2.start()
     AI = yolo_module.YoloModule(load_path=load_path)
     AI.LoadModel()
-    VM = cv_module.Vision_Module(cameraPath=1,q=UIQ,AI_module=AI,voice_assistant_communication_queue=voice_assistant_communication_queue,serial_port_address='COM3')
+    VM = cv_module.Vision_Module(cameraPath=0,q=UIQ,AI_module=AI,voice_assistant_communication_queue=voice_assistant_communication_queue,serial_port_address='COM3')
     VM.run()
     
     
