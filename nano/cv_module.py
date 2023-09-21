@@ -77,18 +77,21 @@ class Vision_Module:
             timeout=0.5,  # 0.5秒连接超时
             serial_port_address="/dev/ttyUSB0",  # 串口位置
     ):
-        self.ser = serial.Serial(serial_port_address, baud_rate, timeout=timeout)
+        self.garbage_name = None
+        # self.ser = serial.Serial(serial_port_address, baud_rate, timeout=timeout)
         # self.ser.open()
         self.voice_assistant_communication_queue = voice_assistant_communication_queue
         self.cameraPath = cameraPath
         self.cameraPath2 = cameraPath2
-        # if serial_port_address != None : self.ser = serial.Serial(serial_port_address, baudrate=baud_rate, timeout=0.5)
+        if serial_port_address != None : self.ser = serial.Serial(serial_port_address, baudrate=baud_rate, timeout=0.5)
         self.detect = 0
         self.if20s = True  # 如果还在旋转验满的话，那么就不能进行检测，如果在验满就是false，不在这个状态就是true
         self.frame = None
         self.frame2 = None
         self.camera_path = cameraPath
         self.cap = cv2.VideoCapture(cameraPath)
+        self.cap.set(cv2.CAP_PROP_BRIGHTNESS, 200)
+        self.cap.set(cv2.CAP_PROP_EXPOSURE, -3)
         if cameraPath2 != None:
             self.cap2 = cv2.VideoCapture(cameraPath2)
         else:
@@ -141,7 +144,8 @@ class Vision_Module:
 
     def camera(self):
         try:
-            reg, self.frame = self.cap.read()
+            for i in range(2):
+                reg, self.frame = self.cap.read()
             cv2.imwrite(os.path.join(folder, "img//1.jpg"), self.frame)
             if self.cap2 != None:
                 reg, self.frame2 = self.cap2.read()
@@ -153,7 +157,6 @@ class Vision_Module:
     def detectionModule(self):
         try:
             return self.AIModule()
-            # return False
         except Exception as e:
             print('error in detectionModule')
             return False
@@ -165,7 +168,7 @@ class Vision_Module:
 
     def AIModule(self):
         type_to_flag = {'其他垃圾': 0, '厨余垃圾': 1, '可回收垃圾': 2, '有害垃圾': 3}
-        self.garbageType, num_garbage = self.AI_module.Module(self.frame)
+        self.garbage_name ,self.garbageType, num_garbage = self.AI_module.Module(self.frame)
         if self.garbageType == "其他垃圾":
             self.other_Garbage += num_garbage
         elif self.garbageType == "厨余垃圾":
@@ -199,7 +202,7 @@ class Vision_Module:
     def sendSerialInformation(self):
         print("正在发送数据")
 
-        data = [[0x2C], [0x12], [0x00], [0x5B]]
+        data = [[0x2C], [0x12], [0x00], [0x00],[0x5B]]
         if self.garbageType == "其他垃圾":
             data[2] = [0x00]
         elif self.garbageType == "厨余垃圾":
@@ -211,7 +214,9 @@ class Vision_Module:
         else:
             print("error")
             exit()
-        for i in range(0, 4):
+        if self.garbage_name == 'yilaguan':
+            data[3] = [0x01]
+        for i in range(len(data)):
             data[i] = bytearray(data[i])
             time.sleep(0.1)
             print(data[i])
@@ -232,10 +237,14 @@ class Vision_Module:
         return data
 
     def waitingForSerial(self):
-        if self.garbageType == '可回收垃圾':
-            time.sleep(35)
-        else:
-            time.sleep(8)
+        data = self.recv()
+        print('wait'+str(data))
+        # time.sleep(4)
+        # if self.garbageType == '可回收垃圾':
+        #     time.sleep(35)
+        # else:
+        #     time.sleep(8)
+
         # data=[0x00,0x00,0x00,0x00,0x00,0x00,0x00]
         #
         # print('开始等待读取')
@@ -436,14 +445,6 @@ class Vision_Module:
                 t2.start()
                 self.machine_running = True
                 self.sendSerialInformation()
-                # try:
-                #     if self.waitingForSerial():
-                #         self.UI_pass_parameters_2()
-                # except:
-                #     self.fullLoad = False
-                #     self.qUIinformation["fullLoad"] = False
-                #     self.qUIinformation["ifBegin"] = False
-                #     self.qUIinformation["ifSuccess"] = True
                 self.waitingForSerial()
                 self.UI_pass_parameters_2()
                 self.machine_running = False

@@ -39,7 +39,7 @@ if __name__ == "__main__":
     UIQ = Queue(1)
     voice_assistant_communication_queue = Queue(1)
     multiprocessing.freeze_support() # windows需要加这行代码，linux不需要
-    load_path = r"models/yolov8_best.onnx"
+    load_path = r"E:\repository\model\best_920.onnx"
     p2 = Process(target=run_UI, args=(UIQ,))
     p2.start()
     AI = yolo_module.YoloModule(load_path=load_path)

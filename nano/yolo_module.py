@@ -56,8 +56,8 @@ class YoloModule:
         self.name_to_type = {
             'cipian': '其他垃圾', 'eluanshi': '其他垃圾', 'tudou': '厨余垃圾', 'bailuobo': '厨余垃圾',
             'huluobo': '厨余垃圾',
-            'yilaguan': '可回收垃圾', 'bottle': '可回收垃圾', 'battery': '可回收垃圾', 'medician': '有害垃圾',
-            'zhuantou': '其他垃圾'
+            'yilaguan': '可回收垃圾', 'bottle': '可回收垃圾', 'battery': '有害垃圾', 'medician': '有害垃圾',
+            'zhuankuai': '其他垃圾'
         }
         self.colors = {name: [random.randint(0, 255) for _ in range(3)] for i, name in enumerate(self.names)}
 
@@ -86,8 +86,7 @@ class YoloModule:
         - the dict {garbage name : num}
         - the dict {garbage name : box_list}
         """
-
-        self.predict_result = self.model(source=self.img)[0]
+        self.predict_result = self.model(source=self.img,save=True)[0]
         if len(self.predict_result.boxes) == 0:
             return False
         self.garbage_names = name_list_prediction(self.predict_result)
@@ -105,7 +104,7 @@ class YoloModule:
         self.read_img(frame)
         success = self.predict()
         if success:
-            return self.garbage_type[0],self.garbage_type_numbers[self.garbage_type[0]]
+            return self.garbage_names[0],self.garbage_type[0],self.garbage_type_numbers[self.garbage_type[0]]
         else:
             return None,None
 

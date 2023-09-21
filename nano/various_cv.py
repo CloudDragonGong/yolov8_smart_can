@@ -1,12 +1,13 @@
 """
 the various_cv.py will be called by various_classify.py
 """
+import os
 import time
 import threading
 import cv2
 import serial
 
-
+folder = 'nano'
 def show_img(img):
     assert img is not None, 'img is None'
     cv2.imshow('frame', img)
@@ -70,8 +71,8 @@ class VariousCV:
         self.name_to_type = {
             'cipian': '其他垃圾', 'eluanshi': '其他垃圾', 'tudou': '厨余垃圾', 'bailuobo': '厨余垃圾',
             'huluobo': '厨余垃圾',
-            'yilaguan': '可回收垃圾', 'bottle': '可回收垃圾', 'battery': '可回收垃圾', 'medician': '有害垃圾',
-            'zhuantou': '其他垃圾'
+            'yilaguan': '可回收垃圾', 'bottle': '可回收垃圾', 'battery': '有害垃圾', 'medician': '有害垃圾',
+            'zhuankuai': '其他垃圾'
         }
         self.type_to_qinformation={
             '其他垃圾':'other garbage',
@@ -118,6 +119,8 @@ class VariousCV:
                 self.cap.set(cv2.CAP_PROP_EXPOSURE, -2)
                 for i in range(2):
                     _, self.img = self.cap.read()  # read twice to wait the initiation
+                self.img = self.rotate(degree=180)
+                cv2.imwrite(os.path.join(folder,'img/img.png'),self.img)
                 break
             except:
                 print(" the camera can't be opened ")
@@ -139,11 +142,14 @@ class VariousCV:
         return sorted_distance
 
     def predict(self):
+        start_predict_time = time.time()
         success = self.ai_module.predict_img(self.img)
+
         if success:
             names_boxes = self.ai_module.get_names_boxes()
             distance = self.calculate_distance_and_size(names_boxes,self.name_to_type)
             self.type = distance[0]['type']
+            self.name = distance[0]['name']
             self.type_index = self.type_to_index[self.type]
             self.distance = distance[0]['distance']
             self.UIinformation[self.type_to_qinformation[self.type]] += 1
@@ -151,12 +157,14 @@ class VariousCV:
             self.UIinformation['garbageCategory'] = self.type
         else:
             pass
+        end_predict_time = time.time()
+        print(f"the predict time is {end_predict_time - start_predict_time} ,and the success is {success}")
         return success
 
     def send_classify_information(self):
         print("正在发送数据")
         print(self.distance)
-        data = [[0x2C], [0x12], [0x00],[0x00] ,[0x5B]]
+        data = [[0x2C], [0x12], [0x00],[0x00],[0x00] ,[0x5B]]
         if self.type == "其他垃圾":
             data[2] = [0x00]
         elif self.type == "厨余垃圾":
@@ -168,7 +176,9 @@ class VariousCV:
         else:
             print("error")
             exit()
-        data[3] = [self.distance]
+        if self.name == 'yilaguan':
+            data[3] = [0x01]
+        data[4] = [int(self.distance/10)]
         for d in data:
             d = bytearray(d)
             time.sleep(0.1)
@@ -190,8 +200,7 @@ class VariousCV:
         """
         receive the success information
         """
-        time.sleep(10)
-        return True
+        # time.sleep(10)
         datas_received = [0x00,0x00,0x00]
         for index in range(len(datas_received)):
             datas_received[index] = self.recv()

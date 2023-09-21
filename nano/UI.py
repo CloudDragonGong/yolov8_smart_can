@@ -284,19 +284,16 @@ class showUI(QtWidgets.QMainWindow):
             self.UIinformation["ifBegin"] == False
             and self.UIinformation["ifSuccess"] == False
         ):
-            # print('yunui1()')
             self.yunUI1()  # 请投放垃圾
         elif (
             self.UIinformation["ifBegin"] == True
             and self.UIinformation["ifSuccess"] == False
         ):
-            # print('yunui2()')
             self.yunUI2() # 开始分类
         elif (
             self.UIinformation["ifBegin"] == True
             and self.UIinformation["ifSuccess"] == True
         ):
-            # print('yunui3()')
             self.yunUI3() # 分类完成
 
 
@@ -360,8 +357,6 @@ class showUI(QtWidgets.QMainWindow):
             self.label_26.setText(str(self.UIinformation["other garbage"]))
         if self.UIinformation["ifSuccess"]:
             self.label_27.setText("OK!")
-            # time.sleep(1)
-            print('ok')
         else:
             self.label_27.setText("不OK!")
 

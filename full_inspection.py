@@ -6,13 +6,8 @@ from multiprocessing import Queue, Process
 from PyQt5.Qt import *
 import sys
 from PyQt5.QtWidgets import *
-from nano import various_cv
 from nano import UI
-from nano import yolo_module
-def run_yolo(q, AI):
-    AI.LoadModel()
-    VM = various_cv.VariousCV(q=q,AI_module=AI)
-    VM.run()
+from nano.inspector import Inspector
 
 def run_UI(UIQ):
     app = QApplication(sys.argv)
@@ -24,10 +19,7 @@ if __name__ == "__main__":
     # 两个用于传输信息的消息队列
     UIQ = Queue(1)
     multiprocessing.freeze_support() # windows需要加这行代码，linux不需要
-    load_path = r"E:\repository\model\best_920.onnx"
-    p2 = Process(target=run_UI, args=(UIQ,))
-    p2.start()
-    AI = yolo_module.YoloModule(load_path=load_path)
-    AI.LoadModel()
-    VM = various_cv.VariousCV(cameraPath=1,q=UIQ,AI_module=AI,serial_port_address='COM3')
-    VM.run()
+    process_UI = multiprocessing.Process(target=run_UI,args=(UIQ,))
+    process_UI.start()
+    inspector = Inspector(q = UIQ,serial_port_address='COM3')
+    inspector.run()
