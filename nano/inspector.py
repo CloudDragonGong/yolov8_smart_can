@@ -11,7 +11,7 @@ class Inspector:
          timeout=0.5,  # 0.5秒连接超时
          serial_port_address="/dev/ttyUSB0"
     ):
-        self.ser = serial.Serial(serial_port_address= serial_port_address,baud_rate=baud_rate,timeout=timeout)
+        self.ser = serial.Serial(serial_port_address,baud_rate,timeout=timeout)
         self.UIinformation = {
             "garbageCategory": None,
             "fullLoad": False,
@@ -88,6 +88,6 @@ class Inspector:
         update_thread = threading.Thread(target=self.update)
         update_thread.start()
         while True:
+            time.sleep(20) # 每20秒检测一次
             self.send_data()
             self.receive_data()
-            time.sleep(10) # 每10秒检测一次
