@@ -1,7 +1,7 @@
 import serial
 import time
 ser = serial.Serial('COM3',9600,timeout=0.5)
-data = [[0x2C], [0x12], [0x01],[0x01],[0x10], [0x5B]]
+data = [[0x2C], [0x12], [0x01],[0x01],[0x60], [0x5B]]
 
 for i in range(len(data)):
     data[i] = bytearray(data[i])

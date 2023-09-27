@@ -143,16 +143,14 @@ class Vision_Module:
             self.get_information()
 
     def camera(self):
-        try:
-            for i in range(2):
-                reg, self.frame = self.cap.read()
-            cv2.imwrite(os.path.join(folder, "img//1.jpg"), self.frame)
-            if self.cap2 != None:
-                reg, self.frame2 = self.cap2.read()
-            else:
-                self.frame2 = None
-        except Exception as e:
-            print('error in camera')
+        for i in range(2):
+            reg, self.frame = self.cap.read()
+        cv2.imwrite(os.path.join(folder, "img//1.jpg"), self.frame)
+        if self.cap2 != None:
+            reg, self.frame2 = self.cap2.read()
+        else:
+            self.frame2 = None
+
 
     def detectionModule(self):
         try:
@@ -421,7 +419,7 @@ class Vision_Module:
         global NN
         global detect
 
-        self.cap.open(self.cameraPath)
+        # self.cap.open(self.cameraPath)
         while True:
             try:
                 if self.cameraPath2 != None: self.cap2.open(self.cameraPath2)
