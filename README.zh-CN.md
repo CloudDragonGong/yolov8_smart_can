@@ -95,7 +95,7 @@ nano中还有一些关于智能语音有关的文件，对于工训赛来说并�
 
   [youtube链接](https://www.youtube.com/watch?v=mjIxYqITBE4)
 
-
+[摄像头曝光](https://blog.csdn.net/m0_63230414/article/details/133394588?spm=1001.2014.3001.5501)
 
 
 
