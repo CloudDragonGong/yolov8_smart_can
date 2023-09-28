@@ -449,6 +449,7 @@ class Vision_Module:
                 self.fullLoad = False
                 self.trigger = False
                 self.iftrigger = True
+                # 以下完全可以删除
                 if NN == 0:
                     self.frame = None
                     self.cap = cv2.VideoCapture(self.cameraPath)
